@@ -6,7 +6,7 @@ import tempfile, tarfile, os
 from acklogparser import *
 import ftplib, netrc
 from argparse import ArgumentParser                                                                          
-server_url = 'https://tracker-test.uk.xensource.com'                                                         
+server_url = 'https://tracker.xensource.com'                                                         
                                                                           
 jira = JIRA(options={'server':server_url},                                
             #basic_auth=(tracker_username, tracker_password),              
@@ -223,7 +223,7 @@ def main(options):
     version = options.version      
     
     #To display the ack-submission if there is one:
-    if ticket.get_type() == 'HCL Submission':
+    if ticket.get_type() == 'HCL Submission' and not options.name:
         (ack_path, ack_filename) = ticket.get_ack_attachment()
         print ("%s found.\nExtracting Product Info.." % ack_filename)
         dict = ticket.get_ack_attachment_dict(ack_path)
