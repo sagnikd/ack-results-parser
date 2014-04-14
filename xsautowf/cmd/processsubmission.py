@@ -148,9 +148,8 @@ def get_doc_attachment(master_ticket):
 def time_track(inputdate):
     """Prints Weekly Tickets Created and Resolved from the input day
        till Today"""
-    resolve_str = ("type ='HCL Submission' and createdDate >=" +
-                   " '%d/%d/%d' and createdDate<= '%d/%d/%d' and" +
-                   " resolution in (Fixed,Done)")
+    resolve_str = ("type ='HCL Submission' and resolutiondate >=" +
+                   " '%d/%d/%d' and resolutiondate<= '%d/%d/%d'")
     created_str = ("type ='HCL Submission' and createdDate >= '%d/%d/%d'" +
                    " and createdDate<= '%d/%d/%d'")
     inputdate = datetime.datetime(int(inputdate.split('-')[0]),
