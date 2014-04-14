@@ -5,6 +5,7 @@ import re
 from xsjira.models import Task, HCLSubmission, GenericSubmission
 from sfftp.client import SFFTPClient
 from argparse import ArgumentParser
+import datetime
 
 SERVER_URL = 'https://tracker.vmd.citrix.com'
 
@@ -17,8 +18,8 @@ class RemoteCopyToCRD(object):  # pylint: disable=R0903
        update marketplace.
     """
     #  TODO
-    crd_user = 'sagnikd'
-    crd_pjt_key = 'HCL'
+    crd_user = 'gauravchh'
+    crd_pjt_key = 'CRD'
 
     def __init__(self):
         self.crd_ticket = None
@@ -26,14 +27,15 @@ class RemoteCopyToCRD(object):  # pylint: disable=R0903
     def run(self, master_ticket):
         """Perform the remote copy"""
         (filepath, filename) = get_doc_attachment(master_ticket)
-
+        reporter = master_ticket.get_reporter()
         ticket = master_ticket.create_issue({'project': {'key':
                                                          self.crd_pjt_key},
                                              'summary': 'CLONE Of %s' %
                                              master_ticket.get_summary(),
                                              'issuetype': {'name': 'Task'},
                                              'description': 'Please add' +
-                                             ' the device to marketplace'})
+                                             ' the device to marketplace',
+                                             'reporter': reporter, })
 
         self.crd_ticket = Task(JIRA, ticket.key)
         self.crd_ticket.create_issue_link(master_ticket.key)
@@ -42,7 +44,7 @@ class RemoteCopyToCRD(object):  # pylint: disable=R0903
 
         if filepath:
             self.crd_ticket.add_attachment(filepath, filename)
-
+        self.crd_ticket.add_watcher(reporter)
         self.crd_ticket.add_comment(
             "Hi Gaurav,\nCould you please update this to market " +
             "place and attach the link.\nThanks,\nSagnik"
@@ -143,6 +145,49 @@ def get_doc_attachment(master_ticket):
     return (None, None)
 
 
+def time_track(inputdate):
+    """Prints Weekly Tickets Created and Resolved from the input day
+       till Today"""
+    resolve_str = ("type ='HCL Submission' and createdDate >=" +
+                   " '%d/%d/%d' and createdDate<= '%d/%d/%d' and" +
+                   " resolution in (Fixed,Done)")
+    created_str = ("type ='HCL Submission' and createdDate >= '%d/%d/%d'" +
+                   " and createdDate<= '%d/%d/%d'")
+    inputdate = datetime.datetime(int(inputdate.split('-')[0]),
+                                  int(inputdate.split('-')[1]),
+                                  int(inputdate.split('-')[2]))
+    today = datetime.datetime.today()
+
+    date = inputdate
+    while True:
+        week_firstday = date - datetime.timedelta(date.weekday())
+        week_endday = week_firstday + datetime.timedelta(7)
+
+        nextweek_firstday = week_endday + datetime.timedelta(1)
+        reslvd_tkts = JIRA.search_issues(resolve_str % (week_firstday.year,
+                                                        week_firstday.month,
+                                                        week_firstday.day,
+                                                        week_endday.year,
+                                                        week_endday.month,
+                                                        week_endday.day))
+        print "Resolved Tickets between %s to %s = %d" % (week_firstday,
+                                                          week_endday,
+                                                          len(reslvd_tkts))
+        crtd_tkts = JIRA.search_issues(created_str % (week_firstday.year,
+                                                      week_firstday.month,
+                                                      week_firstday.day,
+                                                      week_endday.year,
+                                                      week_endday.month,
+                                                      week_endday.day))
+        print "Tickets raised between %s to %s = %d\n" % (week_firstday,
+                                                          week_endday,
+                                                          len(crtd_tkts))
+        if (nextweek_firstday - today).days < 0:
+            date = nextweek_firstday
+        else:
+            break
+
+
 def main():
     """Entry point"""
     argParser = ArgumentParser()  # pylint: disable=C0103
@@ -154,5 +199,8 @@ def main():
     argParser.add_argument("-n", "--name", dest="name", required=False)
     argParser.add_argument("-c", "--crddup", dest="crddup", nargs='?',
                            type=str, const='True', required=False)
+    argParser.add_argument("-d", "--date", dest="date", required=False)
     cmdargs = argParser.parse_args()  # pylint: disable=C0103
     process_submission(cmdargs)
+    if cmdargs.date:
+        time_track(cmdargs.date)
