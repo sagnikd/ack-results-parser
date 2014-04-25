@@ -5,7 +5,6 @@ import re
 from xsjira.models import Task, HCLSubmission, GenericSubmission
 from sfftp.client import SFFTPClient
 from argparse import ArgumentParser
-import datetime
 
 SERVER_URL = 'https://tracker.vmd.citrix.com'
 
@@ -90,7 +89,7 @@ def process_submission(options):
     else:
         product_name = options.name
     #  To display the ack-submission if there is one:
-    if ticket.get_type() == 'HCL Submission' and key == 'server':
+    if ticket.get_type() == 'HCL Submission' and key in ['server','nic']:
         (ack_path, ack_filename) = ticket.get_ack_attachment()
         print "%s found.\nExtracting Product Info.." % ack_filename
         adict = ticket.get_ack_attachment_dict(ack_path)
@@ -145,48 +144,6 @@ def get_doc_attachment(master_ticket):
     return (None, None)
 
 
-def time_track(inputdate):
-    """Prints Weekly Tickets Created and Resolved from the input day
-       till Today"""
-    resolve_str = ("type ='HCL Submission' and resolutiondate >=" +
-                   " '%d/%d/%d' and resolutiondate<= '%d/%d/%d'")
-    created_str = ("type ='HCL Submission' and createdDate >= '%d/%d/%d'" +
-                   " and createdDate<= '%d/%d/%d'")
-    inputdate = datetime.datetime(int(inputdate.split('-')[0]),
-                                  int(inputdate.split('-')[1]),
-                                  int(inputdate.split('-')[2]))
-    today = datetime.datetime.today()
-
-    date = inputdate
-    while True:
-        week_firstday = date - datetime.timedelta(date.weekday())
-        week_endday = week_firstday + datetime.timedelta(7)
-
-        nextweek_firstday = week_endday + datetime.timedelta(1)
-        reslvd_tkts = JIRA.search_issues(resolve_str % (week_firstday.year,
-                                                        week_firstday.month,
-                                                        week_firstday.day,
-                                                        week_endday.year,
-                                                        week_endday.month,
-                                                        week_endday.day))
-        print "Resolved Tickets between %s to %s = %d" % (week_firstday,
-                                                          week_endday,
-                                                          len(reslvd_tkts))
-        crtd_tkts = JIRA.search_issues(created_str % (week_firstday.year,
-                                                      week_firstday.month,
-                                                      week_firstday.day,
-                                                      week_endday.year,
-                                                      week_endday.month,
-                                                      week_endday.day))
-        print "Tickets raised between %s to %s = %d\n" % (week_firstday,
-                                                          week_endday,
-                                                          len(crtd_tkts))
-        if (nextweek_firstday - today).days < 0:
-            date = nextweek_firstday
-        else:
-            break
-
-
 def main():
     """Entry point"""
     argParser = ArgumentParser()  # pylint: disable=C0103
@@ -198,8 +155,5 @@ def main():
     argParser.add_argument("-n", "--name", dest="name", required=False)
     argParser.add_argument("-c", "--crddup", dest="crddup", nargs='?',
                            type=str, const='True', required=False)
-    argParser.add_argument("-d", "--date", dest="date", required=False)
     cmdargs = argParser.parse_args()  # pylint: disable=C0103
     process_submission(cmdargs)
-    if cmdargs.date:
-        time_track(cmdargs.date)
