@@ -89,7 +89,7 @@ def process_submission(options):
     else:
         product_name = options.name
     #  To display the ack-submission if there is one:
-    if ticket.get_type() == 'HCL Submission' and key in ['server','nic']:
+    if ticket.get_type() == 'HCL Submission' and key in ['server', 'nic']:
         (ack_path, ack_filename) = ticket.get_ack_attachment()
         print "%s found.\nExtracting Product Info.." % ack_filename
         adict = ticket.get_ack_attachment_dict(ack_path)
