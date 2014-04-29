@@ -88,6 +88,10 @@ class JiraTicket(object):
         """Add watcher"""
         return self.jira.add_watcher(name)
 
+    def change_reporter(self, name):
+        """Edits metadata to change reporter"""
+        return self.issue.update({'reporter': {'name': '%s' % name}})
+
 
 class EpicTicket(JiraTicket):
     """Class for representing epic tickets"""
@@ -98,7 +102,7 @@ class EpicTicket(JiraTicket):
         return self.issue.__dict__['raw']['fields'][epic_name_field_id]
 
 
-class HCLSubmission(JiraTicket):
+class HCLSubmission(JiraTicket):  # pylint: disable=R0904
     """Class for representing HCLSubmission issues"""
 
     def validate(self):
@@ -135,7 +139,7 @@ class HCLSubmission(JiraTicket):
         return zippath
 
 
-class DDSubmission(HCLSubmission):
+class DDSubmission(HCLSubmission):  # pylint: disable=R0904
     """Driver Disk Submission"""
 
     def validate(self):
@@ -144,7 +148,7 @@ class DDSubmission(HCLSubmission):
             raise Exception("Not a DD Submission! (%s)" % self.get_type())
 
 
-class Task(HCLSubmission):
+class Task(HCLSubmission):  # pylint: disable=R0904
     """Task"""
 
     def validate(self):
@@ -153,7 +157,7 @@ class Task(HCLSubmission):
             raise Exception("Not a Task! (%s)" % self.get_type())
 
 
-class GenericSubmission(HCLSubmission):
+class GenericSubmission(HCLSubmission):  # pylint: disable=R0904
     """Generic HCL Submission"""
 
     def validate(self):

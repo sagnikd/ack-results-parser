@@ -1,16 +1,17 @@
 """Python script to analyze HCL related telemetry"""
 
-from xsautowf.cmd.processsubmission import JIRA, ArgumentParser
+from jira.client import JIRA
+from argparse import ArgumentParser
 import datetime
 
 
 def time_track(inputdate):
     """Prints Weekly Tickets Created and Resolved from the input day
        till Today"""
-    resolve_str = ("type ='HCL Submission' and resolutiondate >=" +
-                   " '%d/%d/%d' and resolutiondate<= '%d/%d/%d'")
-    created_str = ("type ='HCL Submission' and createdDate >= '%d/%d/%d'" +
-                   " and createdDate<= '%d/%d/%d'")
+    resolve_str = "type ='HCL Submission' and resolutiondate >=" +
+    " '%d/%d/%d' and resolutiondate<= '%d/%d/%d'"
+    created_str = "type ='HCL Submission' and createdDate >= '%d/%d/%d'" +
+    " and createdDate<= '%d/%d/%d'"
     inputdate = datetime.datetime(int(inputdate.split('-')[0]),
                                   int(inputdate.split('-')[1]),
                                   int(inputdate.split('-')[2]))
@@ -48,8 +49,8 @@ def time_track(inputdate):
 
 def main():
     """Entry Point"""
-    dataParser = ArgumentParser()  # pylint: TODO
+    dataParser = ArgumentParser()  # TODO dataParser
     dataParser.add_argument("-d", "--date", dest="date", required=False,
                             help="Enter Date format: YYYY-MM-DD")
-    cmdargs = dataParser.parse_args()  # pylint: disable TODO
+    cmdargs = dataParser.parse_args()  # TODO Dunno pylint
     time_track(cmdargs.date)
